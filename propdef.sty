@@ -1,0 +1,84 @@
+\ProvidesPackage{propdef}
+\def\basename{propdef}
+
+\newif\if@propdef@noconfig\@propdef@noconfigfalse
+\newif\if@propdef@amsthm\@propdef@amsthmfalse
+\newif\if@propdef@standard\@propdef@standardfalse
+\DeclareOption{noconfig}{\@propdef@noconfigtrue}
+\DeclareOption{amsthm}{\@propdef@amsthmtrue}
+\DeclareOption{standard}{\@propdef@standardtrue}
+
+%% pass rest of options to ntheorem.sty
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{ntheorem}}
+
+\ProcessOptions\relax
+
+%% Require ntheorem.sty
+\if@propdef@noconfig{\PassOptionsToPackage{noconfig}{ntheorem}}\fi
+\if@propdef@amsthm{
+  \PassOptionsToPackage{amsthm}{ntheorem}
+  \if@propdef@standard
+  % Do not pass `standard' option to ntheorem
+  % Instead, define standard theorems except `proof' later
+  \fi
+}\else{
+  \if@propdef@standard{\PassOptionsToPackage{standard}{ntheorem}}\fi
+}\fi
+\RequirePackage{ntheorem}
+
+\let\propdef@newtheorem=\newtheorem
+
+
+%% Definitions *************************************************
+
+%% \deftheorem    defines new theorem if it is undefined
+%% \deftheorem!   defines new theorem and overrides if it is already defined
+%% \deftheorem*   the same as \deftheorem but use \newtheorem*
+%% \deftheorem!*  the same as \deftheorem! but use \newtheorem*
+\gdef\deftheorem@fake#1{%
+  \@ifnextchar[{\deftheorem@fake@sibling{#1}}{\deftheorem@fake@i{#1}}}
+\gdef\deftheorem@fake@sibling#1[#2]#3{}
+\gdef\deftheorem@fake@i#1#2{%
+  \@ifnextchar[{\deftheorem@fake@child{#1}{#2}}{\deftheorem@fake@i@i{#1}{#2}}}
+\gdef\deftheorem@fake@child#1#2[#3]{}
+\gdef\deftheorem@fake@i@i#1#2{}
+\gdef\deftheorem@i{%
+  \@ifnextchar*{\deftheorem@i@star}{\deftheorem@i@nostar}}
+\gdef\deftheorem@force@i!{%
+  \@ifnextchar*{\deftheorem@force@i@star}{\deftheorem@force@i@nostar}}
+\gdef\deftheorem@i@star*#1{%
+  \expandafter\@ifundefined{#1}%
+  {\propdef@newtheorem*{#1}}%
+  {\PackageWarning{\basename}%
+    {deftheorem: theorem keyword `#1' is already defined}\deftheorem@fake{#1}}}
+\gdef\deftheorem@i@nostar#1{%
+  \expandafter\@ifundefined{#1}%
+  {\propdef@newtheorem{#1}}%
+  {\PackageWarning{\basename}%
+    {deftheorem: theorem keyword `#1' is already defined}\deftheorem@fake{#1}}}
+\gdef\deftheorem@force@i@star*#1{%
+  \expandafter\@ifundefined{#1}%
+  {\propdef@newtheorem*{#1}}{\renewtheorem*{#1}}}
+\gdef\deftheorem@force@i@nostar#1{%
+  \expandafter\@ifundefined{#1}{\propdef@newtheorem{#1}}{\renewtheorem{#1}}}
+\gdef\deftheorem{\@ifnextchar!{\deftheorem@force@i}{\deftheorem@i}}
+
+%% End of definitons *******************************************
+
+
+%% Do not load standard config file
+\if@propdef@noconfig{\endinput}\else{%
+  \if@propdef@amsthm{%
+    \if@propdef@standard\else{\endinput}\fi
+  }\else{\endinput}\fi
+}\fi
+
+%% Load standard config file
+\let\newtheorem=\deftheorem % allow redefinition
+\InputIfFileExists{ntheorem.std}%
+{\PackageInfo{propdef}{Standard config file ntheorem.std used}}{}
+\let\newtheorem=\propdef@newtheorem
+
+\endinput
+%%
+%% End of file `propdef.sty'
