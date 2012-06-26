@@ -107,7 +107,8 @@
 
 %% define and retrieve default option values
 \gdef\prop@opt@def#1#2#3{%
-  \expandafter\xdef\csname prop@#1@o@#2\endcsname{#3}}
+  \expandafter\@ifundefined{prop@#1@o@#2}{%
+    \expandafter\xdef\csname prop@#1@o@#2\endcsname{#3}}{}}
 \gdef\prop@opt@get#1#2{\csname prop@#1@o@#2\endcsname}
 
 %% \prop:use[OPTIONS]{ID}
@@ -259,9 +260,34 @@
   \prop@proof#3\proof\relax\prop@proofend%
   \fi}
 
-%% \begin{prop:proof}[def,proof=PROOF]{ID}
+%% \begin{prop:proof}[NAME|OPTIONS]{ID}
 %%   ...
 %% \end{prop:proof}
+%%
+%% [OPTIONS]
+%%   def
+%%   name=NAME
+%%   type=TYPE
+%%   label=LABEL
+\subcommand\endprop[:proof]{}
+\subcommand\prop[:proof]{\@ifnextchar[%]
+  {\@@prop@proof}{\@@prop@proof[]}}
+\gdef\@@prop@proof[#1]#2{%
+  \let\prop@o@def=\relax%
+  \edef\prop@o@name{default}%
+  \edef\prop@o@type{proof}%
+  \edef\prop@o@label{proof:#2}%
+  \prop@opt@parse@name{#1}%
+  \prop@opt@def{#2}{proof}{\prop@o@name}%
+  \prop@opt@def{#2}{prooftype}{\prop@o@type}%
+  \prop@opt@def{#2}{prooflabel}{\prop@o@label}%
+  \edef\prop@id{#2}%
+  \prop@collect@body\@@@prop@proof}
+\gdef\@@@prop@proof#1{%
+  \expandafter\@prop@proof\expandafter[\prop@o@name]%
+  #1\proof\relax\prop@proofend%
+  \ifx\prop@o@def\relax%
+  \expandafter\prop@use@proof\expandafter[\prop@o@name]{\prop@id}\else\fi}
 
 %% End of definitons *******************************************
 
