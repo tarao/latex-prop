@@ -1,5 +1,5 @@
 \ProvidesPackage{propdef}
-\def\basename{propdef}
+\def\base@name{propdef}
 
 \newif\if@propdef@noconfig\@propdef@noconfigfalse
 \newif\if@propdef@amsthm\@propdef@amsthmfalse
@@ -49,12 +49,12 @@
 \gdef\deftheorem@i@star*#1{%
   \expandafter\@ifundefined{#1}%
   {\propdef@newtheorem*{#1}}%
-  {\PackageWarning{\basename}%
+  {\PackageWarning{\base@name}%
     {deftheorem: theorem keyword `#1' is already defined}\deftheorem@fake{#1}}}
 \gdef\deftheorem@i@nostar#1{%
   \expandafter\@ifundefined{#1}%
   {\propdef@newtheorem{#1}}%
-  {\PackageWarning{\basename}%
+  {\PackageWarning{\base@name}%
     {deftheorem: theorem keyword `#1' is already defined}\deftheorem@fake{#1}}}
 \gdef\deftheorem@force@i@star*#1{%
   \expandafter\@ifundefined{#1}%
