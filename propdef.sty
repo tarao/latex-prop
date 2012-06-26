@@ -73,6 +73,9 @@
   }\else{\endinput}\fi
 }\fi
 
+%% Define keyword for predefined environment
+\@ifundefined{proofKeyword}{\gdef\proofKeyword{Proof}}{}
+
 %% Load standard config file
 \let\newtheorem=\deftheorem % allow redefinition
 \InputIfFileExists{ntheorem.std}%
