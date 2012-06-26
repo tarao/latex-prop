@@ -37,11 +37,11 @@
 %% \deftheorem!   defines new theorem and overrides if it is already defined
 %% \deftheorem*   the same as \deftheorem but use \newtheorem*
 %% \deftheorem!*  the same as \deftheorem! but use \newtheorem*
-\gdef\deftheorem@fake#1{%
-  \@ifnextchar[{\deftheorem@fake@sibling{#1}}{\deftheorem@fake@i{#1}}}
+\gdef\deftheorem@fake#1{\@ifnextchar[%]
+  {\deftheorem@fake@sibling{#1}}{\deftheorem@fake@i{#1}}}
 \gdef\deftheorem@fake@sibling#1[#2]#3{}
-\gdef\deftheorem@fake@i#1#2{%
-  \@ifnextchar[{\deftheorem@fake@child{#1}{#2}}{\deftheorem@fake@i@i{#1}{#2}}}
+\gdef\deftheorem@fake@i#1#2{\@ifnextchar[%]
+  {\deftheorem@fake@child{#1}{#2}}{\deftheorem@fake@i@i{#1}{#2}}}
 \gdef\deftheorem@fake@child#1#2[#3]{}
 \gdef\deftheorem@fake@i@i#1#2{}
 \gdef\deftheorem@i{%
@@ -118,7 +118,8 @@
 %%   proof=PROOF|none
 %%   prooflabel=LABEL
 %%   prooftype=TYPE
-\subcommand\prop[:use]{\@ifnextchar[{\prop@use}{\prop@use[]}}
+\subcommand\prop[:use]{\@ifnextchar[%]
+  {\prop@use}{\prop@use[]}}
 \gdef\prop@use[#1]#2{\bgroup%
   \edef\prop@o@type{\prop@opt@get{#2}{type}}%
   \let\prop@o@name=\relax%
@@ -150,7 +151,8 @@
 %%   name=NAME
 %%   label=LABEL
 %%   type=TYPE
-\subcommand\prop[:use:proof]{\@ifnextchar[{\prop@use@proof}{\prop@use@proof[]}}
+\subcommand\prop[:use:proof]{\@ifnextchar[%]
+  {\prop@use@proof}{\prop@use@proof[]}}
 \gdef\prop@use@proof[#1]#2{\bgroup%
   \def\prop@o@name{\prop@opt@get{#2}{proof}}%
   \def\prop@o@type{\prop@opt@get{#2}{prooftype}}%
@@ -219,7 +221,8 @@
 %%   prooftype=TYPE
 %%   prooflabel=LABEL
 \gdef\endprop{}
-\gdef\@prop{\@ifnextchar[{\@@prop}{\@@prop[]}}
+\gdef\@prop{\@ifnextchar[%]
+  {\@@prop}{\@@prop[]}}
 \gdef\@@prop[#1]#2{%
   \let\prop@o@def=\relax%
   \edef\prop@o@type{lemma}%
@@ -239,7 +242,8 @@
 \long\gdef\prop@statement#1\proof#2\prop@proofend{%
   \global\@namedef{prop@\prop@id @prop}{#1}%
   \prop@proof#2\proof\relax\prop@proofend}
-\gdef\prop@proof{\@ifnextchar[{\@prop@proof}{\@prop@proof[]}}
+\gdef\prop@proof{\@ifnextchar[%]
+  {\@prop@proof}{\@prop@proof[]}}
 \long\gdef\@prop@proof[#1]#2\proof#3\prop@proofend{%
   \ifx#2\relax\else%
   \bgroup%
