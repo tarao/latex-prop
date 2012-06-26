@@ -31,6 +31,8 @@
 
 %% Definitions *************************************************
 
+%% Patches for \newtheorem *************
+
 %% \deftheorem    defines new theorem if it is undefined
 %% \deftheorem!   defines new theorem and overrides if it is already defined
 %% \deftheorem*   the same as \deftheorem but use \newtheorem*
@@ -62,6 +64,200 @@
 \gdef\deftheorem@force@i@nostar#1{%
   \expandafter\@ifundefined{#1}{\propdef@newtheorem{#1}}{\renewtheorem{#1}}}
 \gdef\deftheorem{\@ifnextchar!{\deftheorem@force@i}{\deftheorem@i}}
+
+%% Define \prop:COMMAND ****************
+
+\RequirePackage{subcommand}
+
+\gdef\prop{\@prop}
+\gdef\def@prop@command#1{\subcommand\prop[:#1]}
+
+%% extract NAME from NAME=VALUE
+\gdef\@prop@opt@name#1=#2,{#1}
+\gdef\prop@opt@name#1{\expandafter\@prop@opt@name#1=,}
+
+%% extract VALUE from NAME=VALUE
+\gdef\@prop@opt@value#1=#2,{#2\@gobbletwo}
+\gdef\prop@opt@value#1{\expandafter\@prop@opt@value#1,=,\@empty\@empty}
+\edef\prop@opt@none{none}
+
+%% define \prop@o@NAME for option named NAME
+\gdef\prop@opt@parse#1{%
+  \@for\@opt:=#1\do{%
+    \edef\@opt@name{\prop@opt@name{\@opt}}%
+    \edef\@opt@value{\prop@opt@value{\@opt}}%
+    \expandafter\edef\csname prop@o@\@opt@name\endcsname{\@opt@value}}}
+\gdef\prop@opt@parse@name#1{%
+  \let\@has@opt=\relax%
+  \@for\@opt:=#1\do{%
+    \ifx\@has@opt\@empty\edef\@has@opt{x}\fi%
+    \ifx\@has@opt\relax\let\@has@opt=\@empty\fi}%
+  \ifx\@has@opt\@empty%
+  \prop@opt@parse@name@#1==\@empty\@empty%
+  \else%
+  \prop@opt@parse{#1}%
+  \fi}
+\gdef\prop@opt@parse@name@#1=#2={%
+  \def\@tmp{#2}%
+  \ifx\@tmp\@empty%
+  \edef\prop@o@name{#1}%
+  \else%
+  \prop@opt@parse{#1=#2}%
+  \fi\@gobbletwo}
+
+%% define and retrieve default option values
+\gdef\prop@opt@def#1#2#3{%
+  \expandafter\xdef\csname prop@#1@o@#2\endcsname{#3}}
+\gdef\prop@opt@get#1#2{\csname prop@#1@o@#2\endcsname}
+
+%% \prop:use[OPTIONS]{ID}
+%% [OPTIONS]
+%%   name=NAME
+%%   label=LABEL
+%%   type=TYPE
+%%   proof=PROOF|none
+%%   prooflabel=LABEL
+%%   prooftype=TYPE
+\subcommand\prop[:use]{\@ifnextchar[{\prop@use}{\prop@use[]}}
+\gdef\prop@use[#1]#2{\bgroup%
+  \edef\prop@o@type{\prop@opt@get{#2}{type}}%
+  \let\prop@o@name=\relax%
+  \edef\prop@o@label{\prop@opt@get{#2}{label}}
+  \edef\prop@o@proof{\prop@opt@get{#2}{proof}}%
+  \prop@opt@parse{#1}%
+  \edef\prop@o@prooftype{\prop@opt@get{#2[\prop@o@proof]}{type}}%
+  \edef\prop@o@prooflabel{\prop@opt@get{#2[\prop@o@proof]}{label}}%
+  \prop@opt@parse{#1}%
+  \ifx\prop@o@name\relax%
+  \begin{\prop@o@type}%
+    \ifx\prop@o@label\prop@opt@none\else\label{\prop@o@label}\fi%
+    \@nameuse{prop@#2@prop}%
+  \end{\prop@o@type}%
+  \else%
+  \begin{\prop@o@type}[\prop@o@name]%
+    \ifx\prop@o@label\prop@opt@none\else\label{\prop@o@label}\fi%
+    \@nameuse{prop@#2@prop}%
+  \end{\prop@o@type}%
+  \fi%
+  \ifx\prop@o@proof\prop@opt@none\else%
+  \prop@use@proof%
+  [name=\prop@o@proof,label=\prop@o@prooflabel,type=\prop@o@prooftype]{#2}%
+  \fi\egroup}
+
+%% \prop:use:proof[NAME|OPTIONS]{ID}
+%%
+%% [OPTIONS]
+%%   name=NAME
+%%   label=LABEL
+%%   type=TYPE
+\subcommand\prop[:use:proof]{\@ifnextchar[{\prop@use@proof}{\prop@use@proof[]}}
+\gdef\prop@use@proof[#1]#2{\bgroup%
+  \def\prop@o@name{\prop@opt@get{#2}{proof}}%
+  \def\prop@o@type{\prop@opt@get{#2}{prooftype}}%
+  \edef\prop@o@label{\prop@opt@get{#2}{prooflabel}}%
+  \prop@opt@parse@name{#1}%
+  \def\prop@o@type{\prop@opt@get{#2[\prop@o@name]}{type}}%
+  \edef\prop@o@label{\prop@opt@get{#2[\prop@o@name]}{label}}%
+  \prop@opt@parse@name{#1}%
+  \begin{\prop@o@type}%
+    \ifx\prop@o@label\prop@opt@none\else\label{\prop@o@label}\fi%
+    \@nameuse{prop@#2@proof[\prop@o@name]}%
+  \end{\prop@o@type}%
+  \egroup}
+
+%% \prop:ref{ID(STATEMENT),...}
+
+%% Environment *************************
+
+%% Pass environment body as an argument of macro (cf. environ.sty)
+\long\gdef\prop@collect@body#1{%
+  \let\@ef=\expandafter%
+  \gdef\prop@envbody{\expandafter#1\expandafter{\prop@envbody}}%
+  \@ef\@ef\@ef\def\@ef\@ef\@ef\prop@process@envbody\@ef\@ef\@ef{%
+    \@ef\prop@envbody\@ef\end\@ef{\@currenvir}}%
+  \gdef\prop@envbody{}%
+  \def\prop@begin@stack{b}%
+  \begingroup%
+  \@ef\let\csname\@currenvir\endcsname\prop@@collect@body%
+  \edef\prop@process@envbody{%
+    \expandafter\noexpand\csname\@currenvir\endcsname}%
+  \prop@process@envbody}
+\long\gdef\prop@push@begins#1\begin#2{%
+  \ifx\end#2\else%
+    b\expandafter\prop@push@begins%
+  \fi}
+\long\gdef\prop@addto@envbody#1{%
+  \expandafter\gdef\expandafter\prop@envbody\expandafter{\prop@envbody#1}}%
+\long\gdef\prop@@collect@body#1\end#2{%
+  \edef\prop@begin@stack{%
+    \prop@push@begins#1\begin\end\expandafter\@gobble\prop@begin@stack}%
+  \ifx\@empty\prop@begin@stack%
+    \endgroup%
+    \@checkend{#2}%
+    \prop@addto@envbody{#1}%
+  \else%
+    \prop@addto@envbody{#1\end{#2}}%
+  \fi%
+  \prop@process@envbody}
+
+%% \begin{prop}[OPTIONS]{ID}
+%%   ...
+%% \proof
+%%   ...
+%% \proof[PROOF]
+%%   ...
+%% \proof[name=PROOF,type=TYPE,label=LABEL]
+%%   ...
+%% \end{prop}
+%%
+%% [OPTIONS]
+%%   def
+%%   name=NAME
+%%   type=TYPE
+%%   label=LABEL
+%%   proof=PROOF
+%%   prooftype=TYPE
+%%   prooflabel=LABEL
+\gdef\endprop{}
+\gdef\@prop{\@ifnextchar[{\@@prop}{\@@prop[]}}
+\gdef\@@prop[#1]#2{%
+  \let\prop@o@def=\relax%
+  \edef\prop@o@type{lemma}%
+  \edef\prop@o@proof{default}%
+  \edef\prop@o@prooftype{proof}%
+  \prop@opt@parse{#1}%
+  \prop@opt@def{#2}{type}{\prop@o@type}%
+  \prop@opt@def{#2}{label}{prop:#2}%
+  \prop@opt@def{#2}{proof}{\prop@o@proof}%
+  \prop@opt@def{#2}{prooftype}{\prop@o@prooftype}%
+  \prop@opt@def{#2}{prooflabel}{proof:#2}%
+  \edef\prop@id{#2}%
+  \prop@collect@body\@@@prop}
+\long\gdef\@@@prop#1{%
+  \expandafter\prop@statement#1\proof\relax\prop@proofend%
+  \ifx\prop@o@def\relax\prop@use[]{\prop@id}\else\fi}
+\long\gdef\prop@statement#1\proof#2\prop@proofend{%
+  \global\@namedef{prop@\prop@id @prop}{#1}%
+  \prop@proof#2\proof\relax\prop@proofend}
+\gdef\prop@proof{\@ifnextchar[{\@prop@proof}{\@prop@proof[]}}
+\long\gdef\@prop@proof[#1]#2\proof#3\prop@proofend{%
+  \ifx#2\relax\else%
+  \bgroup%
+  \edef\prop@o@name{\prop@opt@get{\prop@id}{proof}}%
+  \edef\prop@o@type{\prop@opt@get{\prop@id}{prooftype}}%
+  \prop@opt@parse@name{#1}%
+  \edef\prop@o@label{\prop@opt@get{\prop@id}{prooflabel}[\prop@o@name]}%
+  \prop@opt@parse@name{#1}%
+  \prop@opt@def{\prop@id[\prop@o@name]}{type}{\prop@o@type}%
+  \prop@opt@def{\prop@id[\prop@o@name]}{label}{\prop@o@label}%
+  \global\@namedef{prop@\prop@id @proof[\prop@o@name]}{#2}%
+  \egroup%
+  \prop@proof#3\proof\relax\prop@proofend%
+  \fi}
+
+%% \begin{prop:proof}[def,proof=PROOF]{ID}
+%%   ...
+%% \end{prop:proof}
 
 %% End of definitons *******************************************
 
