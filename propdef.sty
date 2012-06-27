@@ -296,6 +296,7 @@
   \prop@opt@def{#2}{prooftype}{\prop@o@prooftype}%
   \prop@opt@def{#2}{prooflabel}{proof:#2}%
   \edef\prop@id{#2}%
+  \prop@def@stat%
   \prop@collect@body\@@@prop}
 \long\gdef\@@@prop#1{%
   \expandafter\prop@statement#1\proof\relax\prop@proofend%
@@ -342,6 +343,7 @@
   \prop@opt@def{#2}{prooftype}{\prop@o@type}%
   \prop@opt@def{#2}{prooflabel}{\prop@o@label}%
   \edef\prop@id{#2}%
+  \prop@def@stat%
   \prop@collect@body\@@@prop@proof}
 \gdef\@@@prop@proof#1{%
   \expandafter\@prop@proof\expandafter[\prop@o@name]%
