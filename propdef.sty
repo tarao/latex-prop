@@ -1,28 +1,32 @@
 \ProvidesPackage{propdef}
 \def\base@name{propdef}
 
-\newif\if@propdef@noconfig\@propdef@noconfigfalse
-\newif\if@propdef@amsthm\@propdef@amsthmfalse
-\newif\if@propdef@standard\@propdef@standardfalse
-\DeclareOption{noconfig}{\@propdef@noconfigtrue}
-\DeclareOption{amsthm}{\@propdef@amsthmtrue}
-\DeclareOption{standard}{\@propdef@standardtrue}
+\newif\if@prop@enumerate\@prop@enumeratefalse
+\newif\if@prop@noconfig\@prop@noconfigfalse
+\newif\if@prop@amsthm\@prop@amsthmfalse
+\newif\if@prop@standard\@prop@standardfalse
+\DeclareOption{enumerate}{\@prop@enumeratetrue}
+\DeclareOption{noconfig}{\@prop@noconfigtrue}
+\DeclareOption{amsthm}{\@prop@amsthmtrue}
+\DeclareOption{standard}{\@prop@standardtrue}
 
 %% pass rest of options to ntheorem.sty
 \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{ntheorem}}
 
 \ProcessOptions\relax
 
-%% Require ntheorem.sty
-\if@propdef@noconfig{\PassOptionsToPackage{noconfig}{ntheorem}}\fi
-\if@propdef@amsthm{
+%% Require packages
+
+%% ntheorem
+\if@prop@noconfig{\PassOptionsToPackage{noconfig}{ntheorem}}\fi
+\if@prop@amsthm{
   \PassOptionsToPackage{amsthm}{ntheorem}
-  \if@propdef@standard
+  \if@prop@standard
   % Do not pass `standard' option to ntheorem
   % Instead, define standard theorems except `proof' later
   \fi
 }\else{
-  \if@propdef@standard{\PassOptionsToPackage{standard}{ntheorem}}\fi
+  \if@prop@standard{\PassOptionsToPackage{standard}{ntheorem}}\fi
 }\fi
 \RequirePackage{ntheorem}
 
@@ -50,19 +54,19 @@
   \@ifnextchar*{\deftheorem@force@i@star}{\deftheorem@force@i@nostar}}
 \gdef\deftheorem@i@star*#1{%
   \expandafter\@ifundefined{#1}%
-  {\propdef@newtheorem*{#1}}%
+  {\prop@newtheorem*{#1}}%
   {\PackageWarning{\base@name}%
     {deftheorem: theorem keyword `#1' is already defined}\deftheorem@fake{#1}}}
 \gdef\deftheorem@i@nostar#1{%
   \expandafter\@ifundefined{#1}%
-  {\propdef@newtheorem{#1}}%
+  {\prop@newtheorem{#1}}%
   {\PackageWarning{\base@name}%
     {deftheorem: theorem keyword `#1' is already defined}\deftheorem@fake{#1}}}
 \gdef\deftheorem@force@i@star*#1{%
   \expandafter\@ifundefined{#1}%
-  {\propdef@newtheorem*{#1}}{\renewtheorem*{#1}}}
+  {\prop@newtheorem*{#1}}{\renewtheorem*{#1}}}
 \gdef\deftheorem@force@i@nostar#1{%
-  \expandafter\@ifundefined{#1}{\propdef@newtheorem{#1}}{\renewtheorem{#1}}}
+  \expandafter\@ifundefined{#1}{\prop@newtheorem{#1}}{\renewtheorem{#1}}}
 \gdef\deftheorem{\@ifnextchar!{\deftheorem@force@i}{\deftheorem@i}}
 
 %% Define \prop:COMMAND ****************
@@ -293,9 +297,9 @@
 
 
 %% Do not load standard config file
-\if@propdef@noconfig{\endinput}\else{%
-  \if@propdef@amsthm{%
-    \if@propdef@standard\else{\endinput}\fi
+\if@prop@noconfig{\endinput}\else{%
+  \if@prop@amsthm{%
+    \if@prop@standard\else{\endinput}\fi
   }\else{\endinput}\fi
 }\fi
 
@@ -305,8 +309,8 @@
 %% Load standard config file
 \let\newtheorem=\deftheorem % allow redefinition
 \InputIfFileExists{ntheorem.std}%
-{\PackageInfo{propdef}{Standard config file ntheorem.std used}}{}
-\let\newtheorem=\propdef@newtheorem
+{\PackageInfo{\base@name}{Standard config file ntheorem.std used}}{}
+\let\newtheorem=\prop@newtheorem
 
 \endinput
 %%
