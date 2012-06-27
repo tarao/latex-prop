@@ -80,10 +80,7 @@
   \expandafter\@ifundefined{#1}{\prop@newtheorem{#1}}{\renewtheorem{#1}}}
 \gdef\deftheorem{\@ifnextchar!{\deftheorem@force@i}{\deftheorem@i}}
 
-%% Define \prop:COMMAND ****************
-
-\gdef\prop{\@prop}
-\gdef\def@prop@command#1{\subcommand\prop[:#1]}
+%% Internal definitions ****************
 
 %% extract NAME from NAME=VALUE
 \gdef\@prop@opt@name#1=#2,{#1}
@@ -123,6 +120,41 @@
   \expandafter\@ifundefined{prop@#1@o@#2}{%
     \expandafter\xdef\csname prop@#1@o@#2\endcsname{#3}}{}}
 \gdef\prop@opt@get#1#2{\csname prop@#1@o@#2\endcsname}
+
+%% Pass environment body as an argument of macro (cf. environ.sty)
+\long\gdef\prop@collect@body#1{%
+  \let\@ef=\expandafter%
+  \gdef\prop@envbody{\expandafter#1\expandafter{\prop@envbody}}%
+  \@ef\@ef\@ef\def\@ef\@ef\@ef\prop@process@envbody\@ef\@ef\@ef{%
+    \@ef\prop@envbody\@ef\end\@ef{\@currenvir}}%
+  \gdef\prop@envbody{}%
+  \def\prop@begin@stack{b}%
+  \begingroup%
+  \@ef\let\csname\@currenvir\endcsname\prop@@collect@body%
+  \edef\prop@process@envbody{%
+    \expandafter\noexpand\csname\@currenvir\endcsname}%
+  \prop@process@envbody}
+\long\gdef\prop@push@begins#1\begin#2{%
+  \ifx\end#2\else%
+    b\expandafter\prop@push@begins%
+  \fi}
+\long\gdef\prop@addto@envbody#1{%
+  \expandafter\gdef\expandafter\prop@envbody\expandafter{\prop@envbody#1}}%
+\long\gdef\prop@@collect@body#1\end#2{%
+  \edef\prop@begin@stack{%
+    \prop@push@begins#1\begin\end\expandafter\@gobble\prop@begin@stack}%
+  \ifx\@empty\prop@begin@stack%
+    \endgroup%
+    \@checkend{#2}%
+    \prop@addto@envbody{#1}%
+  \else%
+    \prop@addto@envbody{#1\end{#2}}%
+  \fi%
+  \prop@process@envbody}
+
+%% Define \prop:COMMAND ****************
+
+\gdef\prop{\@prop}
 
 %% \prop:use[OPTIONS]{ID}
 %% [OPTIONS]
@@ -185,83 +217,6 @@
 %% \prop:ref{(STATEMENT),...}
 
 %% Environment *************************
-
-%% Pass environment body as an argument of macro (cf. environ.sty)
-\long\gdef\prop@collect@body#1{%
-  \let\@ef=\expandafter%
-  \gdef\prop@envbody{\expandafter#1\expandafter{\prop@envbody}}%
-  \@ef\@ef\@ef\def\@ef\@ef\@ef\prop@process@envbody\@ef\@ef\@ef{%
-    \@ef\prop@envbody\@ef\end\@ef{\@currenvir}}%
-  \gdef\prop@envbody{}%
-  \def\prop@begin@stack{b}%
-  \begingroup%
-  \@ef\let\csname\@currenvir\endcsname\prop@@collect@body%
-  \edef\prop@process@envbody{%
-    \expandafter\noexpand\csname\@currenvir\endcsname}%
-  \prop@process@envbody}
-\long\gdef\prop@push@begins#1\begin#2{%
-  \ifx\end#2\else%
-    b\expandafter\prop@push@begins%
-  \fi}
-\long\gdef\prop@addto@envbody#1{%
-  \expandafter\gdef\expandafter\prop@envbody\expandafter{\prop@envbody#1}}%
-\long\gdef\prop@@collect@body#1\end#2{%
-  \edef\prop@begin@stack{%
-    \prop@push@begins#1\begin\end\expandafter\@gobble\prop@begin@stack}%
-  \ifx\@empty\prop@begin@stack%
-    \endgroup%
-    \@checkend{#2}%
-    \prop@addto@envbody{#1}%
-  \else%
-    \prop@addto@envbody{#1\end{#2}}%
-  \fi%
-  \prop@process@envbody}
-
-%% \begin{statements}[STYLE|OPTIONS]
-%% \item(NAME)
-%%   ...
-%% \item[MARKER](NAME)
-%%   ...
-%% \end{statements}
-%%
-%% [OPTIONS]
-%%   type=TYPE
-%%   style=STYLE
-\gdef\prop@def@stat{%
-  \def\statements{\@ifnextchar[%]
-    {\@statements}{\@statements[]}}%
-  \def\endstatements{\end{\prop@o@type}}%
-  \def\@statements[##1]{%
-    \let\@prop@label=\label%
-    \let\@prop@item=\item%
-    \def\@prop@item@name(####1){\@prop@item%
-      \ifx\prop@o@label\prop@opt@none\else\label{####1}[\prop@o@style]\fi}%
-    \def\@prop@item@name@[####1](####2){\@prop@item[####1]%
-      \ifx\prop@o@label\prop@opt@none\else\label{####2}[\prop@o@style]\fi}%
-    \def\@prop@item@[####1]{\@ifnextchar(%)
-      {\@prop@item@name@}{\@prop@item[####1]}}%
-    \def\label####1{\@prop@label{\prop@o@label(####1)}}%
-    \def\item{\@ifnextchar[%]
-      {\@prop@item@}{\@ifnextchar(%)
-        {\@prop@item@name}{\@prop@item}}}%
-    \def\@prop@stat@opt{}%
-    % get options
-    \let\prop@o@name\relax%
-    \def\prop@o@type{enumerate}%
-    \def\prop@o@style{(1)}%
-    \prop@opt@parse@name{##1}%
-    \ifx\prop@o@name\relax\else\edef\prop@o@style{\prop@o@name}\fi%
-    % set label length
-    \advance\@enumdepth\@ne%
-    \expandafter\settowidth%
-    \csname leftmargin\romannumeral\@enumdepth\endcsname%
-    {\prop@o@style\hspace{\labelsep}}%
-    \advance\@enumdepth\m@ne%
-    \begin{\prop@o@type}
-    \@enLab{}\let\@enThe=\@enQmark%
-    \expandafter\@enloop\prop@o@style\@enum@%
-    \expandafter\edef\csname label\@enumctr\endcsname{\the\@enLab}%
-    \expandafter\let\csname the\@enumctr\endcsname=\@enThe}}
 
 %% \begin{prop}[OPTIONS]{ID}
 %%   ...
@@ -350,6 +305,52 @@
   #1\proof\relax\prop@proofend%
   \ifx\prop@o@def\relax%
   \expandafter\prop@use@proof\expandafter[\prop@o@name]{\prop@id}\else\fi}
+
+%% \begin{statements}[STYLE|OPTIONS]
+%% \item(NAME)
+%%   ...
+%% \item[MARKER](NAME)
+%%   ...
+%% \end{statements}
+%%
+%% [OPTIONS]
+%%   type=TYPE
+%%   style=STYLE
+\gdef\prop@def@stat{%
+  \def\statements{\@ifnextchar[%]
+    {\@statements}{\@statements[]}}%
+  \def\endstatements{\end{\prop@o@type}}%
+  \def\@statements[##1]{%
+    \let\@prop@label=\label%
+    \let\@prop@item=\item%
+    \def\@prop@item@name(####1){\@prop@item%
+      \ifx\prop@o@label\prop@opt@none\else\label{####1}[\prop@o@style]\fi}%
+    \def\@prop@item@name@[####1](####2){\@prop@item[####1]%
+      \ifx\prop@o@label\prop@opt@none\else\label{####2}[\prop@o@style]\fi}%
+    \def\@prop@item@[####1]{\@ifnextchar(%)
+      {\@prop@item@name@}{\@prop@item[####1]}}%
+    \def\label####1{\@prop@label{\prop@o@label(####1)}}%
+    \def\item{\@ifnextchar[%]
+      {\@prop@item@}{\@ifnextchar(%)
+        {\@prop@item@name}{\@prop@item}}}%
+    \def\@prop@stat@opt{}%
+    % get options
+    \let\prop@o@name\relax%
+    \def\prop@o@type{enumerate}%
+    \def\prop@o@style{(1)}%
+    \prop@opt@parse@name{##1}%
+    \ifx\prop@o@name\relax\else\edef\prop@o@style{\prop@o@name}\fi%
+    % set label length
+    \advance\@enumdepth\@ne%
+    \expandafter\settowidth%
+    \csname leftmargin\romannumeral\@enumdepth\endcsname%
+    {\prop@o@style\hspace{\labelsep}}%
+    \advance\@enumdepth\m@ne%
+    \begin{\prop@o@type}
+    \@enLab{}\let\@enThe=\@enQmark%
+    \expandafter\@enloop\prop@o@style\@enum@%
+    \expandafter\edef\csname label\@enumctr\endcsname{\the\@enLab}%
+    \expandafter\let\csname the\@enumctr\endcsname=\@enThe}}
 
 %% End of definitons *******************************************
 
