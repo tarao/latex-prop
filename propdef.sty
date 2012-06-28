@@ -159,10 +159,10 @@
 %% \prop:use[OPTIONS]{ID}
 %% [OPTIONS]
 %%   name=NAME
-%%   label=LABEL
+%%   label=none|LABEL
 %%   type=TYPE
-%%   proof=PROOF|none
-%%   prooflabel=LABEL
+%%   proof=none|PROOF
+%%   prooflabel=none|LABEL
 %%   prooftype=TYPE
 \subcommand\prop[:use]{\@ifnextchar[%]
   {\prop@use}{\prop@use[]}}
@@ -195,7 +195,7 @@
 %%
 %% [OPTIONS]
 %%   name=NAME
-%%   label=LABEL
+%%   label=none|LABEL
 %%   type=TYPE
 \subcommand\prop[:use:proof]{\@ifnextchar[%]
   {\prop@use@proof}{\prop@use@proof[]}}
@@ -232,10 +232,10 @@
 %%   def
 %%   name=NAME
 %%   type=TYPE
-%%   label=LABEL
-%%   proof=PROOF
+%%   label=none|LABEL
+%%   proof=none|PROOF
 %%   prooftype=TYPE
-%%   prooflabel=LABEL
+%%   prooflabel=none|LABEL
 \gdef\endprop{}
 \gdef\@prop{\@ifnextchar[%]
   {\@@prop}{\@@prop[]}}
@@ -284,7 +284,7 @@
 %%   def
 %%   name=NAME
 %%   type=TYPE
-%%   label=LABEL
+%%   label=none|LABEL
 \subcommand\endprop[:proof]{}
 \subcommand\prop[:proof]{\@ifnextchar[%]
   {\@@prop@proof}{\@@prop@proof[]}}
