@@ -276,6 +276,28 @@
   \prop@proof#3\proof\relax\prop@proofend%
   \fi}
 
+%% \begin{prop:def}[OPTIONS]{ID}
+%%   ...
+%% \proof
+%%   ...
+%% \proof[PROOF]
+%%   ...
+%% \proof[name=PROOF,type=TYPE,label=LABEL]
+%%   ...
+%% \end{prop:def}
+%%
+%% [OPTIONS]
+%%   name=NAME
+%%   type=TYPE
+%%   label=none|LABEL
+%%   proof=none|PROOF
+%%   prooftype=TYPE
+%%   prooflabel=none|LABEL
+\subcommand\endprop[:def]{}
+\subcommand\prop[:def]{\@ifnextchar[%]
+  {\@prop@def}{\@prop@def[def]}}
+\gdef\@prop@def[#1]{\@@prop[def,#1]}
+
 %% \begin{prop:proof}[NAME|OPTIONS]{ID}
 %%   ...
 %% \end{prop:proof}
