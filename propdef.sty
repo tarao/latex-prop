@@ -156,6 +156,36 @@
 
 \gdef\prop{\@prop}
 
+%% Constants
+\gdef\prop@constant@setter#1#2[#3]{%
+  \subcommand\prop[:set:#1]##1{%
+    \expandafter\edef\csname prop@c@#2\endcsname{##1}}%
+  \expandafter\edef\csname prop@c@#2\endcsname{#3}}
+\prop@constant@setter{env-theorem}{theorem}[lemma]
+\prop@constant@setter{env-proof}{proof}[proof]
+\prop@constant@setter{env-enumerate}{enumerate}[enumerate]
+\prop@constant@setter{env-enumerate-style}{enumerate@style}[(1)]
+\prop@constant@setter{ref-space}{ref@space}[~]
+\prop@constant@setter{ref-comma}{ref@comma}[, ]
+\prop@constant@setter{ref-and}{ref@and}[{} and ]
+
+%% Labels
+\subcommand\prop[:label]#1{\@ifnextchar[%]
+  {\prop@new@label{#1}}{\@prop@new@label{#1}}}
+\gdef\prop@new@label#1[#2]#3{%
+  \expandafter\edef\csname prop@l@#1@singular\endcsname{#3}%
+  \expandafter\edef\csname prop@l@#1@plural\endcsname{#2}}
+\gdef\@prop@new@label#1#2{\prop@new@label{#1}[#2]{#2}}
+\prop:label{theorem}[Theorems]{Theorem}
+\prop:label{lemma}[Lemmas]{Lemma}
+\prop:label{proposition}[Propositions]{Proposition}
+\prop:label{corollary}[Corollaries]{Corollary}
+\prop:label{example}[Examples]{Example}
+\prop:label{remark}[Remarks]{Remark}
+\prop:label{definition}[Definitions]{Definition}
+\prop:label{proof}[Proofs]{Proof}
+\prop:label{statement}{}
+
 %% \prop:use[OPTIONS]{ID}
 %% [OPTIONS]
 %%   name=NAME
@@ -241,9 +271,9 @@
   {\@@prop}{\@@prop[]}}
 \gdef\@@prop[#1]#2{%
   \let\prop@o@def=\relax%
-  \edef\prop@o@type{lemma}%
+  \edef\prop@o@type{\prop@c@theorem}%
   \edef\prop@o@proof{default}%
-  \edef\prop@o@prooftype{proof}%
+  \edef\prop@o@prooftype{\prop@c@proof}%
   \prop@opt@parse{#1}%
   \prop@opt@def{#2}{type}{\prop@o@type}%
   \prop@opt@def{#2}{label}{prop:#2}%
@@ -313,7 +343,7 @@
 \gdef\@@prop@proof[#1]#2{%
   \let\prop@o@def=\relax%
   \edef\prop@o@name{default}%
-  \edef\prop@o@type{proof}%
+  \edef\prop@o@type{\prop@c@proof}%
   \edef\prop@o@label{proof:#2}%
   \prop@opt@parse@name{#1}%
   \prop@opt@def{#2}{proof}{\prop@o@name}%
@@ -359,8 +389,8 @@
     \def\@prop@stat@opt{}%
     % get options
     \let\prop@o@name\relax%
-    \def\prop@o@type{enumerate}%
-    \def\prop@o@style{(1)}%
+    \edef\prop@o@type{\prop@c@enumerate}%
+    \edef\prop@o@style{\prop@c@enumerate@style}%
     \prop@opt@parse@name{##1}%
     \ifx\prop@o@name\relax\else\edef\prop@o@style{\prop@o@name}\fi%
     % set label length
