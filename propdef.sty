@@ -243,8 +243,124 @@
   \end{\prop@o@type}%
   \egroup}
 
-%% \prop:ref{ID(STATEMENT),...}
-%% \prop:ref{(STATEMENT),...}
+%% \prop:ref{ID(STATEMENT),...,(STATEMENT),...}
+%% \prop:ref(STATEMENT)
+\subcommand\prop[:ref]{\@ifnextchar(%)
+  {\prop@ref@stat}{\prop@ref}}
+\gdef\prop@ref#1{\bgroup%
+  % configurable constants
+  \edef\@sp{\prop@c@ref@space}%
+  \edef\@comm{\prop@c@ref@comma}%
+  \edef\@and{\prop@c@ref@and}%
+  % internal macros
+  \def\@eatws##1{##1}%
+  \def\prop@ref@thm##1(##2)##3,{##1}%
+  \def\prop@ref@sta##1(##2)##3,{##2}%
+  % constants
+  \edef\@none{none}%
+  \edef\@singular{singular}%
+  \edef\@plural{plural}%
+  % counters and variables
+  \@tempcntb=\z@%
+  \count@=\z@%
+  \let\@thm@last=\@empty%
+  \let\@sta@last=\@empty%
+  % gather information
+  \@for\@tmp:=#1\do{%
+    \edef\@@ref{\expandafter\@eatws\@tmp}%
+    \edef\@thm{\expandafter\prop@ref@thm\@@ref(),}%
+    \edef\@sta{\expandafter\prop@ref@sta\@@ref(),}%
+    \let\@thm@type=\@none
+    \let\@sta@type=\@none
+    \expandafter\let\csname @thm@label\the\count@\endcsname=\@none%
+    \expandafter\let\csname @sta@label\the\count@\endcsname=\@none%
+    % theorem
+    \ifx\@thm\@empty\else%
+      \expandafter\let\csname @thm@label\the\count@\endcsname=\@singular%
+      \edef\@thm@type{\prop@get@type{\@thm}}%
+    \fi%
+    \ifx\@thm@last\@thm@type%
+      \expandafter\ifx\csname @thm@label\the\@tempcntb\endcsname\@singular%
+        \expandafter\let\csname @thm@label\the\@tempcntb\endcsname=\@plural%
+      \fi%
+      \expandafter\let\csname @thm@label\the\count@\endcsname=\@none%
+    \fi%
+    \let\@thm@last=\@thm@type%
+    % statement
+    \ifx\@sta\@empty\else%
+      \expandafter\let\csname @sta@label\the\count@\endcsname=\@singular%
+      \ifx\@thm\@empty%
+        \edef\@sta@type{statement}%
+        \@ifundefined{prop@id}{%
+          \PackageError{\base@name}{%
+            \string\prop:ref{\@@ref} must be used inside %
+            \string\begin{prop} ... \string\end{prop}}\@ehc}{}%
+        \edef\@sta{\prop@id(\@sta)}%
+      \else%
+        \edef\@sta{\@thm(\@sta)}%
+      \fi%
+      \edef\@sta@style{\prop@get@type{\@sta}}%
+    \fi%
+    \ifx\@sta@last\@sta@type%
+      \ifx\@sta\@empty\else
+        \expandafter\ifx\csname @sta\the\@tempcntb\endcsname\@empty\else%
+          \expandafter\ifx\csname @thm\the\@tempcntb\endcsname\@thm
+            \edef\@thm{}\fi\fi\fi%
+      \expandafter\ifx\csname @sta@label\the\@tempcntb\endcsname\@singular%
+        \expandafter\let\csname @sta@label\the\@tempcntb\endcsname=\@plural%
+      \fi%
+      \expandafter\let\csname @sta@label\the\count@\endcsname=\@none%
+    \fi%
+    \let\@sta@last=\@sta@type%
+    %
+    \expandafter\let\csname @thm\the\count@\endcsname=\@thm%
+    \expandafter\let\csname @sta\the\count@\endcsname=\@sta%
+    \expandafter\let\csname @thm@type\the\count@\endcsname=\@thm@type%
+    \expandafter\let\csname @sta@type\the\count@\endcsname=\@sta@type%
+    \expandafter\let\csname @sta@style\the\count@\endcsname=\@sta@style%
+    \@tempcntb=\count@%
+    \advance\count@\@ne}%
+  % show reference
+  \@tempcnta=\count@%
+  \count@=\z@%
+  \@whilenum\count@<\@tempcnta\do{%
+    % theorem
+    \prop@make@ref@label{@thm\the\count@}%
+    {\csname @thm@type\the\count@\endcsname}%
+    {\csname @thm@label\the\count@\endcsname}%
+    \expandafter\ifx\csname @thm\the\count@\endcsname\@empty\else%
+    \ref{prop:\csname @thm\the\count@\endcsname}%
+    \expandafter\ifx\csname @sta\the\count@\endcsname\@empty\else%
+    \prop@c@ref@space\fi\fi%
+    % statement
+    \prop@make@ref@label{@sta\the\count@}%
+    {\csname @sta@type\the\count@\endcsname}%
+    {\csname @sta@label\the\count@\endcsname}%
+    \expandafter\ifx\csname @sta\the\count@\endcsname\@empty\else%
+      \expandafter\ifx\csname @sta@style\the\count@\endcsname\@none%
+        \ref{prop:\csname @sta\the\count@\endcsname}%
+      \else%
+        \prop@make@ref@sta{\ref{prop:\csname @sta\the\count@\endcsname}}%
+        {\csname @sta@style\the\count@\endcsname}%
+      \fi\fi%
+    % `,' or ` and '
+    \advance\count@\@ne%
+    \ifnum\@tempcnta>1\ifnum\count@<\@tempcnta%
+      \ifnum\count@=\@tempcntb\prop@c@ref@and\else\prop@c@ref@comma\fi%
+    \fi\fi%
+  }\egroup}
+\gdef\prop@ref@stat(#1){\prop@ref{(#1)}}
+\gdef\prop@get@type#1{%
+  \@ifundefined{r@prop:#1@type}{none}{\csname r@prop:#1@type\endcsname}}
+\gdef\prop@make@ref@label#1#2#3{% id, type, sing/plu
+  \expandafter\@ifundefined{#1}{}{%
+    \expandafter\ifx#2\@none\else\expandafter\@ifundefined{prop@l@#2@#3}{}{%
+      \edef\@label{\csname prop@l@#2@#3\endcsname}%
+      \ifx\@label\@empty\else\@label\prop@c@ref@space\fi}\fi}}
+\gdef\prop@make@ref@sta#1#2{% label, style
+  \def\@enumctr{dummy}\def\thedummy{#1}%
+  \@enLab{}\edef\@sta@style{#2}%
+  \expandafter\@enloop\@sta@style\@enum@\the\@enLab}
 
 %% Environment *************************
 
