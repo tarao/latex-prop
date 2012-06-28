@@ -365,13 +365,16 @@
     \ifx\prop@o@name\relax\else\edef\prop@o@style{\prop@o@name}\fi%
     % set label length
     \advance\@enumdepth\@ne%
-    \expandafter\settowidth%
-    \csname leftmargin\romannumeral\@enumdepth\endcsname%
-    {\prop@o@style\hspace{\labelsep}}%
-    \advance\@enumdepth\m@ne%
-    \begin{\prop@o@type}
+    \edef\@enumctr{enum\romannumeral\the\@enumdepth}%
     \@enLab{}\let\@enThe=\@enQmark%
     \expandafter\@enloop\prop@o@style\@enum@%
+    \csname c@\@enumctr\endcsname7%
+    \expandafter\settowidth%
+    \csname leftmargin\romannumeral\@enumdepth\endcsname%
+    {\the\@enLab\hspace{\labelsep}}%
+    \advance\@enumdepth\m@ne%
+    % enumerate
+    \begin{\prop@o@type}%
     \expandafter\edef\csname label\@enumctr\endcsname{\the\@enLab}%
     \expandafter\let\csname the\@enumctr\endcsname=\@enThe}}
 
