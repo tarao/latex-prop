@@ -343,15 +343,16 @@
     {\@statements}{\@statements[]}}%
   \def\endstatements{\end{\prop@o@type}}%
   \def\@statements[##1]{%
-    \let\@prop@label=\label%
     \let\@prop@item=\item%
     \def\@prop@item@name(####1){\@prop@item%
-      \ifx\prop@o@label\prop@opt@none\else\label{####1}[\prop@o@style]\fi}%
+      \ifx\prop@o@label\prop@opt@none\else\@prop@label{####1}\fi}%
     \def\@prop@item@name@[####1](####2){\@prop@item[####1]%
-      \ifx\prop@o@label\prop@opt@none\else\label{####2}[\prop@o@style]\fi}%
+      \ifx\prop@o@label\prop@opt@none\else%
+        \@prop@label@[\bgroup{####1}\egroup]{####2}\fi}%
     \def\@prop@item@[####1]{\@ifnextchar(%)
-      {\@prop@item@name@}{\@prop@item[####1]}}%
-    \def\label####1{\@prop@label{\prop@o@label(####1)}}%
+      {\@prop@item@name@[####1]}{\@prop@item[####1]}}%
+    \def\@prop@label####1{\@prop@label@[\prop@o@style]{####1}}%
+    \def\@prop@label@[####1]####2{\label{\prop@o@label(####2)}[####1]}%
     \def\item{\@ifnextchar[%]
       {\@prop@item@}{\@ifnextchar(%)
         {\@prop@item@name}{\@prop@item}}}%
