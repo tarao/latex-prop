@@ -400,8 +400,17 @@
   \prop@def@stat%
   \prop@collect@body\@@@prop}
 \long\gdef\@@@prop#1{%
+  \let\prop@proof@defined=\relax%
+  \let\prop@proof@used=\relax%
   \expandafter\prop@statement#1\proof\relax\prop@proofend%
-  \ifx\prop@o@def\relax\prop@use[]{\prop@id}\else\fi}
+  \ifx\prop@o@def\relax
+    \ifx\prop@proof@defined\relax%
+      \expandafter\@ifundefined{prop@\prop@id @proof[\prop@o@proof]}{%
+        \let\prop@proof@used=\@empty}{}\fi
+    \ifx\prop@proof@used\relax%
+      \prop@use[]{\prop@id}%
+    \else%
+      \prop@use[proof=none]{\prop@id}\fi\fi}
 \long\gdef\prop@statement#1\proof#2\prop@proofend{%
   \global\@namedef{prop@\prop@id @prop}{#1}%
   \prop@proof#2\proof\relax\prop@proofend}
@@ -409,6 +418,7 @@
   {\@prop@proof}{\@prop@proof[]}}
 \long\gdef\@prop@proof[#1]#2\proof#3\prop@proofend{%
   \ifx#2\relax\else%
+  \let\prop@proof@defined=\@empty%
   \bgroup%
   \edef\prop@o@name{\prop@opt@get{\prop@id}{proof}}%
   \edef\prop@o@type{\prop@opt@get{\prop@id}{prooftype}}%
