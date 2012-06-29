@@ -2,33 +2,42 @@
 \def\base@name{propdef}
 
 \newif\if@prop@enumerate\@prop@enumeratefalse
+\newif\if@prop@ntheorem\@prop@ntheoremfalse
 \newif\if@prop@noconfig\@prop@noconfigfalse
 \newif\if@prop@amsthm\@prop@amsthmfalse
 \newif\if@prop@standard\@prop@standardfalse
 \DeclareOption{enumerate}{\@prop@enumeratetrue}
+\DeclareOption{ntheorem}{\@prop@ntheoremtrue}
 \DeclareOption{noconfig}{\@prop@noconfigtrue}
 \DeclareOption{amsthm}{\@prop@amsthmtrue}
 \DeclareOption{standard}{\@prop@standardtrue}
 
 %% pass rest of options to ntheorem.sty
-\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{ntheorem}}
+\if@prop@ntheorem
+  \DeclareOption*{\PassOptionsToPackage{\CurrentOption}{ntheorem}}
+\fi
 
 \ProcessOptions\relax
 
 %% Require packages
 
 %% ntheorem
-\if@prop@noconfig{\PassOptionsToPackage{noconfig}{ntheorem}}\fi
-\if@prop@amsthm{
-  \PassOptionsToPackage{amsthm}{ntheorem}
-  \if@prop@standard
-  % Do not pass `standard' option to ntheorem
-  % Instead, define standard theorems except `proof' later
-  \fi
-}\else{
-  \if@prop@standard{\PassOptionsToPackage{standard}{ntheorem}}\fi
-}\fi
-\RequirePackage{ntheorem}
+\if@prop@ntheorem
+  \if@prop@noconfig{\PassOptionsToPackage{noconfig}{ntheorem}}\fi
+  \if@prop@amsthm{
+    \PassOptionsToPackage{amsthm}{ntheorem}
+    \if@prop@standard
+    % Do not pass `standard' option to ntheorem
+    % Instead, define standard theorems except `proof' later
+    \fi
+  }\else{
+    \if@prop@standard{\PassOptionsToPackage{standard}{ntheorem}}\fi
+  }\fi
+  \RequirePackage{ntheorem}
+\else\if@prop@amsthm
+  \RequirePackage{amsthm}
+\fi\fi
+
 \let\prop@newtheorem=\newtheorem
 
 %% enumerate
@@ -152,6 +161,34 @@
   \fi%
   \prop@process@envbody}
 
+%% Make new label
+\gdef\prop@label{\@ifnextchar[%]
+  {\@prop@label@}{\@prop@label}}
+\def\@prop@label#1{\@bsphack%
+  \protected@write\@auxout{}%
+  {\string\newlabel{#1}{{\@currentlabel}{\thepage}}}%
+  \@esphack}
+\def\@prop@label@[#1]#2{\@bsphack%
+  \protected@write\@auxout{}%
+  {\string\prop@newlabel{#2}{{\@currentlabel}{\thepage}}[#1]}%
+  \@esphack}
+\gdef\prop@newlabel{\prop@newl@bel r}
+\gdef\prop@newl@bel#1#2#3{%
+  \@ifundefined{#1@#2}%
+    \relax%
+    {\gdef \@multiplelabels {%
+        \@latex@warning@no@line{There were multiply-defined labels}}%
+      \@latex@warning@no@line{Label `#2' multiply defined}}%
+    \global\@namedef{#1@#2}{#3}%
+    \@ifnextchar[{\prop@set@label@type{#1}{#2}}%]
+    \relax}%
+\@onlypreamble\prop@newl@bel
+\gdef\prop@set@label@type#1#2[#3]{\global\@namedef{#1@#2@type}{#3}}
+\let\prop@enddocument=\enddocument
+\gdef\enddocument{%
+  \let\prop@newl@bel=\@testdef%
+  \prop@enddocument}
+
 %% Define \prop:COMMAND ****************
 
 \gdef\prop{\@prop}
@@ -207,12 +244,14 @@
   \prop@opt@parse{#1}%
   \ifx\prop@o@name\relax%
   \begin{\prop@o@type}%
-    \ifx\prop@o@label\prop@opt@none\else\label{\prop@o@label}[\prop@o@type]\fi%
+    \ifx\prop@o@label\prop@opt@none\else%
+      \prop@label[\prop@o@type]{\prop@o@label}\fi%
     \@nameuse{prop@#2@prop}%
   \end{\prop@o@type}%
   \else%
   \begin{\prop@o@type}[\prop@o@name]%
-    \ifx\prop@o@label\prop@opt@none\else\label{\prop@o@label}[\prop@o@type]\fi%
+    \ifx\prop@o@label\prop@opt@none\else%
+      \prop@label[\prop@o@type]{\prop@o@label}\fi%
     \@nameuse{prop@#2@prop}%
   \end{\prop@o@type}%
   \fi%
@@ -238,7 +277,8 @@
   \edef\prop@o@label{\prop@opt@get{#2[\prop@o@name]}{label}}%
   \prop@opt@parse@name{#1}%
   \begin{\prop@o@type}%
-    \ifx\prop@o@label\prop@opt@none\else\label{\prop@o@label}[\prop@o@type]\fi%
+    \ifx\prop@o@label\prop@opt@none\else%
+      \prop@label[\prop@o@type]{\prop@o@label}\fi%
     \@nameuse{prop@#2@proof[\prop@o@name]}%
   \end{\prop@o@type}%
   \egroup}
@@ -501,14 +541,14 @@
   \def\@statements[##1]{%
     \let\@prop@item=\item%
     \def\@prop@item@name(####1){\@prop@item%
-      \ifx\prop@o@label\prop@opt@none\else\@prop@label{####1}\fi}%
+      \ifx\prop@o@label\prop@opt@none\else\@@prop@label{####1}\fi}%
     \def\@prop@item@name@[####1](####2){\@prop@item[####1]%
       \ifx\prop@o@label\prop@opt@none\else%
-        \@prop@label@[\bgroup{####1}\egroup]{####2}\fi}%
+        \@@prop@label@[\bgroup{####1}\egroup]{####2}\fi}%
     \def\@prop@item@[####1]{\@ifnextchar(%)
       {\@prop@item@name@[####1]}{\@prop@item[####1]}}%
-    \def\@prop@label####1{\@prop@label@[\prop@o@style]{####1}}%
-    \def\@prop@label@[####1]####2{\label{\prop@o@label(####2)}[####1]}%
+    \def\@@prop@label####1{\@@prop@label@[\prop@o@style]{####1}}%
+    \def\@@prop@label@[####1]####2{\prop@label[####1]{\prop@o@label(####2)}}%
     \def\item{\@ifnextchar[%]
       {\@prop@item@}{\@ifnextchar(%)
         {\@prop@item@name}{\@prop@item}}}%
@@ -537,21 +577,23 @@
 %% End of definitons *******************************************
 
 
-%% Do not load standard config file
-\if@prop@noconfig{\endinput}\else{%
-  \if@prop@amsthm{%
-    \if@prop@standard\else{\endinput}\fi
-  }\else{\endinput}\fi
-}\fi
+\if@prop@ntheorem
+  %% Do not load standard config file
+  \if@prop@noconfig{\endinput}\else{%
+    \if@prop@amsthm{%
+      \if@prop@standard\else{\endinput}\fi
+    }\else{\endinput}\fi
+  }\fi
 
-%% Define keyword for predefined environment
-\@ifundefined{proofKeyword}{\gdef\proofKeyword{Proof}}{}
+  %% Define keyword for predefined environment
+  \@ifundefined{proofKeyword}{\gdef\proofKeyword{Proof}}{}
 
-%% Load standard config file
-\let\newtheorem=\deftheorem % allow redefinition
-\InputIfFileExists{ntheorem.std}%
-{\PackageInfo{\base@name}{Standard config file ntheorem.std used}}{}
-\let\newtheorem=\prop@newtheorem
+  %% Load standard config file
+  \let\newtheorem=\deftheorem % allow redefinition
+  \InputIfFileExists{ntheorem.std}%
+  {\PackageInfo{\base@name}{Standard config file ntheorem.std used}}{}
+  \let\newtheorem=\prop@newtheorem
+\fi
 
 \endinput
 %%
