@@ -242,9 +242,9 @@
   \edef\prop@o@prooftype{\prop@opt@get{#2[\prop@o@proof]}{type}}%
   \edef\prop@o@prooflabel{\prop@opt@get{#2[\prop@o@proof]}{label}}%
   \prop@opt@parse{#1}%
-  \ifx\prop@o@name\relax%
   \edef\prop@id{#2}%
   \prop@def@stat%
+  \ifx\prop@o@name\relax%
   \begin{\prop@o@type}%
     \ifx\prop@o@label\prop@opt@none\else%
       \prop@label[\prop@o@type]{\prop@o@label}\fi%
