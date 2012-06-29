@@ -243,6 +243,8 @@
   \edef\prop@o@prooflabel{\prop@opt@get{#2[\prop@o@proof]}{label}}%
   \prop@opt@parse{#1}%
   \ifx\prop@o@name\relax%
+  \edef\prop@id{#2}%
+  \prop@def@stat%
   \begin{\prop@o@type}%
     \ifx\prop@o@label\prop@opt@none\else%
       \prop@label[\prop@o@type]{\prop@o@label}\fi%
@@ -276,6 +278,8 @@
   \def\prop@o@type{\prop@opt@get{#2[\prop@o@name]}{type}}%
   \edef\prop@o@label{\prop@opt@get{#2[\prop@o@name]}{label}}%
   \prop@opt@parse@name{#1}%
+  \edef\prop@id{#2}%
+  \prop@def@stat%
   \begin{\prop@o@type}%
     \ifx\prop@o@label\prop@opt@none\else%
       \prop@label[\prop@o@type]{\prop@o@label}\fi%
@@ -437,7 +441,6 @@
   \prop@opt@def{#2}{prooftype}{\prop@o@prooftype}%
   \prop@opt@def{#2}{prooflabel}{proof:#2}%
   \edef\prop@id{#2}%
-  \prop@def@stat%
   \prop@collect@body\@@@prop}
 \long\gdef\@@@prop#1{%
   \let\prop@proof@defined=\relax%
@@ -516,7 +519,6 @@
   \prop@opt@def{#2}{prooftype}{\prop@o@type}%
   \prop@opt@def{#2}{prooflabel}{\prop@o@label}%
   \edef\prop@id{#2}%
-  \prop@def@stat%
   \prop@collect@body\@@@prop@proof}
 \gdef\@@@prop@proof#1{%
   \expandafter\@prop@proof\expandafter[\prop@o@name]%
