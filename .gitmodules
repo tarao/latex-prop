@@ -1,0 +1,3 @@
+[submodule "packages/subcommand"]
+	path = packages/subcommand
+	url = git://github.com/tarao/latex-subcommand.git
