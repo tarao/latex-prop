@@ -104,8 +104,9 @@
 \gdef\prop@opt@parse#1{%
   \@for\@opt:=#1\do{%
     \edef\@opt@name{\prop@opt@name{\@opt}}%
-    \edef\@opt@value{\prop@opt@value{\@opt}}%
-    \expandafter\edef\csname prop@o@\@opt@name\endcsname{\@opt@value}}}
+    \def\@opt@value{\prop@opt@value{\@opt}}%
+    \expandafter\protected@edef\csname prop@o@\@opt@name\endcsname%
+    {\@opt@value}}}
 \gdef\prop@opt@parse@name#1{%
   \let\@has@opt=\relax%
   \@for\@opt:=#1\do{%
@@ -127,7 +128,7 @@
 %% define and retrieve default option values
 \gdef\prop@opt@def#1#2#3{%
   \expandafter\@ifundefined{prop@#1@o@#2}{%
-    \expandafter\xdef\csname prop@#1@o@#2\endcsname{#3}}{}}
+    \expandafter\protected@xdef\csname prop@#1@o@#2\endcsname{#3}}{}}
 \gdef\prop@opt@get#1#2{\csname prop@#1@o@#2\endcsname}
 
 %% Pass environment body as an argument of macro (cf. environ.sty)
@@ -196,8 +197,8 @@
 %% Constants
 \gdef\prop@constant@setter#1#2[#3]{%
   \subcommand\prop[:set:#1]##1{%
-    \expandafter\edef\csname prop@c@#2\endcsname{##1}}%
-  \expandafter\edef\csname prop@c@#2\endcsname{#3}}
+    \expandafter\protected@edef\csname prop@c@#2\endcsname{##1}}%
+  \expandafter\protected@edef\csname prop@c@#2\endcsname{#3}}
 \prop@constant@setter{env-theorem}{theorem}[lemma]
 \prop@constant@setter{env-proof}{proof}[proof]
 \prop@constant@setter{env-enumerate}{enumerate}[enumerate]
@@ -210,8 +211,8 @@
 \subcommand\prop[:label]#1{\@ifnextchar[%]
   {\prop@new@label{#1}}{\@prop@new@label{#1}}}
 \gdef\prop@new@label#1[#2]#3{%
-  \expandafter\edef\csname prop@l@#1@singular\endcsname{#3}%
-  \expandafter\edef\csname prop@l@#1@plural\endcsname{#2}}
+  \expandafter\protected@edef\csname prop@l@#1@singular\endcsname{#3}%
+  \expandafter\protected@edef\csname prop@l@#1@plural\endcsname{#2}}
 \gdef\@prop@new@label#1#2{\prop@new@label{#1}[#2]{#2}}
 \prop:label{theorem}[Theorems]{Theorem}
 \prop:label{lemma}[Lemmas]{Lemma}
@@ -293,9 +294,9 @@
   {\prop@ref@stat}{\prop@ref}}
 \gdef\prop@ref#1{\bgroup%
   % configurable constants
-  \edef\@sp{\prop@c@ref@space}%
-  \edef\@comm{\prop@c@ref@comma}%
-  \edef\@and{\prop@c@ref@and}%
+  \protected@edef\@sp{\prop@c@ref@space}%
+  \protected@edef\@comm{\prop@c@ref@comma}%
+  \protected@edef\@and{\prop@c@ref@and}%
   % internal macros
   \def\@eatws##1{##1}%
   \def\prop@ref@thm##1(##2)##3,{##1}%
