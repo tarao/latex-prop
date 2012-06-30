@@ -236,7 +236,7 @@
   {\prop@use}{\prop@use[]}}
 \gdef\prop@use[#1]#2{\bgroup%
   \edef\prop@o@type{\prop@opt@get{#2}{type}}%
-  \let\prop@o@name=\relax%
+  \protected@edef\prop@o@name{\prop@opt@get{#2}{name}}%
   \edef\prop@o@label{\prop@opt@get{#2}{label}}
   \edef\prop@o@proof{\prop@opt@get{#2}{proof}}%
   \prop@opt@parse{#1}%
@@ -245,7 +245,7 @@
   \prop@opt@parse{#1}%
   \edef\prop@id{#2}%
   \prop@def@stat%
-  \ifx\prop@o@name\relax%
+  \ifx\prop@o@name\@empty%
   \begin{\prop@o@type}%
     \ifx\prop@o@label\prop@opt@none\else%
       \prop@label[\prop@o@type]{\prop@o@label}\fi%
@@ -432,10 +432,12 @@
   {\@@prop}{\@@prop[]}}
 \gdef\@@prop[#1]#2{%
   \let\prop@o@def=\relax%
+  \def\prop@o@name{}%
   \edef\prop@o@type{\prop@c@theorem}%
   \edef\prop@o@proof{default}%
   \edef\prop@o@prooftype{\prop@c@proof}%
   \prop@opt@parse{#1}%
+  \prop@opt@def{#2}{name}{\prop@o@name}%
   \prop@opt@def{#2}{type}{\prop@o@type}%
   \prop@opt@def{#2}{label}{prop:#2}%
   \prop@opt@def{#2}{proof}{\prop@o@proof}%
