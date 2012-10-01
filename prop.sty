@@ -457,7 +457,8 @@
 \gdef\prop@proof{\@ifnextchar[%]
   {\@prop@proof}{\@prop@proof[]}}
 \long\gdef\@prop@proof[#1]#2\proof#3\prop@proofend{%
-  \ifx#2\relax\else%
+  \def\@ifrel@x##1##2\else{\ifx##1\relax\else}%
+  \@ifrel@x#2\else%
   \let\prop@proof@defined=\@empty%
   \bgroup%
   \edef\prop@o@name{\prop@opt@get{\prop@id}{proof}}%
