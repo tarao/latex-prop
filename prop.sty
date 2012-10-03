@@ -463,7 +463,7 @@
 \gdef\prop@proof{\@ifnextchar[%]
   {\@prop@proof}{\@prop@proof[]}}
 \long\gdef\@prop@proof[#1]#2\proof#3\prop@proofend{%
-  \def\@ifrel@x##1##2\else{\ifx##1\relax\else}%
+  \long\def\@ifrel@x##1##2\else{\ifx##1\relax\else}%
   \@ifrel@x#2\else%
   \let\prop@proof@defined=\@empty%
   \bgroup%
