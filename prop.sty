@@ -6,11 +6,13 @@
 \newif\if@prop@noconfig\@prop@noconfigfalse
 \newif\if@prop@amsthm\@prop@amsthmfalse
 \newif\if@prop@standard\@prop@standardfalse
+\newif\if@prop@hyperref\@prop@hyperreffalse
 \DeclareOption{enumerate}{\@prop@enumeratetrue}
 \DeclareOption{ntheorem}{\@prop@ntheoremtrue}
 \DeclareOption{noconfig}{\@prop@noconfigtrue}
 \DeclareOption{amsthm}{\@prop@amsthmtrue}
 \DeclareOption{standard}{\@prop@standardtrue}
+\DeclareOption{hyperref}{\@prop@hyperreftrue}
 
 %% pass rest of options to ntheorem.sty
 \if@prop@ntheorem
@@ -51,6 +53,11 @@
 
 %% subcommand
 \RequirePackage{subcommand}
+
+%% hyperref
+\if@prop@hyperref
+  \RequirePackage{hyperref}
+\fi
 
 
 %% Definitions *************************************************
@@ -167,11 +174,21 @@
   {\@prop@label@}{\@prop@label}}
 \def\@prop@label#1{\@bsphack%
   \protected@write\@auxout{}%
-  {\string\newlabel{#1}{{\@currentlabel}{\thepage}}}%
+  {\expandafter\string%
+    \if@prop@hyperref%
+     \newlabel{#1}{{\@currentlabel}{\thepage}{\@currentlabelname}{\@currentHref}}%
+    \else%
+     \newlabel{#1}{{\@currentlabel}{\thepage}}%
+    \fi}%
   \@esphack}
 \def\@prop@label@[#1]#2{\@bsphack%
   \protected@write\@auxout{}%
-  {\string\prop@newlabel{#2}{{\@currentlabel}{\thepage}}[#1]}%
+  {\expandafter\string%
+    \if@prop@hyperref%
+     \prop@newlabel{#2}{{\@currentlabel}{\thepage}{\@currentlabelname}{\@currentHref}}[#1]%
+    \else%
+     \prop@newlabel{#2}{{\@currentlabel}{\thepage}}[#1]%
+    \fi}%
   \@esphack}
 \gdef\prop@newlabel{\prop@newl@bel r}
 \gdef\prop@newl@bel#1#2#3{%
